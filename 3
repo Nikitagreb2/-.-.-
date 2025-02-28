@@ -1,0 +1,83 @@
+class CustomList:
+    def __init__(self, size):
+        if size <= 0:
+            raise ValueError("Размер списка должен быть положительным.")
+        self.size = size
+        self._list = [0] * size  
+        self._write_counter = 0  
+        self._read_counter = 0    
+
+    def get_list(self):
+        self._read_counter += 1
+        return self._list
+
+    def get_write_counter(self):
+        return self._write_counter
+
+    def get_read_counter(self):
+        return self._read_counter
+
+    def set_item(self, index, value):
+        if not (-100 <= value <= 100):
+            raise ValueError("Значение должно быть в пределах от -100 до 100.")
+        if index < 0 or index >= self.size:
+            raise IndexError("Индекс выходит за пределы массива.")
+        self._list[index] = value
+        self._write_counter += 1
+
+    def get_item(self, index):
+        if index < 0 or index >= self.size:
+            raise IndexError("Индекс выходит за пределы массива.")
+        self._read_counter += 1
+        return self._list[index]
+
+    def add_item(self, value):
+        if not (-100 <= value <= 100):
+            raise ValueError("Значение должно быть в пределах от -100 до 100.")
+        self._list.append(value)  
+        self.size += 1  
+        self._write_counter += 1 
+
+    def add(self, other):
+        if not isinstance(other, CustomList):
+            raise TypeError("Можно складывать только с объектами CustomList.")
+
+        result_size = max(self.size, other.size)
+        result = CustomList(result_size)
+        
+        for i in range(result_size):
+            val_a = self.get_item(i) if i < self.size else 0  # 0, если индекс выходит за пределы
+            val_b = other.get_item(i) if i < other.size else 0  # 0, если индекс выходит за пределы
+            result.set_item(i, val_a + val_b)
+        
+        return result
+
+    def subtract(self, other):
+        if not isinstance(other, CustomList):
+            raise TypeError("Можно вычитать только из объектов CustomList.")
+        
+        result_size = max(self.size, other.size)
+        result = CustomList(result_size)
+
+        for i in range(result_size):
+            val_a = self.get_item(i) if i < self.size else 0  
+            val_b = other.get_item(i) if i < other.size else 0  
+            result.set_item(i, val_a - val_b)
+        
+        return result
+
+if __name__ == "__main__":
+    arrA = CustomList(3)
+    arrA.set_item(0, 10)
+    arrA.set_item(1, 20)
+    arrA.set_item(2, 30)
+
+    arrB = CustomList(2)
+    arrB.set_item(0, 5)
+    arrB.set_item(1, 15)
+
+    arrC_add = arrA.add(arrB)
+    print("Результат сложения:", arrC_add.get_list())  
+
+    arrC_subtract = arrA.subtract(arrB)
+    print("Результат вычитания:", arrC_subtract.get_list()) 
