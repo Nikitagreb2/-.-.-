@@ -1,0 +1,27 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+
+data = {
+    'Партия': ['Единая Россия', 'Коммунистическая партия', 'ЛДПР', 'Справедливая Россия'],
+    'Созыв 1': [350, 50, 25, 15],
+    'Созыв 2': [300, 70, 30, 20],
+    'Созыв 3': [280, 80, 40, 25],
+    'Созыв 4': [310, 60, 35, 30]
+}
+
+df = pd.DataFrame(data)
+
+df.set_index('Партия', inplace=True)
+
+colors = { 'blue', 'red',  'yellow', 'green'}
+
+df.plot(kind='bar', stacked=True, figsize=(10, 7), color=[colors[i] for i in df.index])
+
+plt.title('Распределение партий в Государственной Думе за последние 4 созыва')
+plt.xlabel('Партия')
+plt.ylabel('Количество мест')
+plt.legend(title='Созывы')
+plt.xticks(rotation=45)
+plt.tight_layout()
+
+plt.show()
