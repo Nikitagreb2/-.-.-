@@ -1,0 +1,39 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+num_groups = 5
+num_points_per_group = 10
+np.random.seed(42)  
+
+central_points = np.random.rand(num_groups, 2) * 10
+
+points = []
+
+for cp in central_points:
+    x deviations = (np.random.rand(num_points_per_group) - 0.5) * 2
+    y deviations = (np.random.rand(num_points_per_group) - 0.5) * 2
+    group_points = np.column_stack((cp[0] + x_deviations, cp[1] + y_deviations))
+    points.append(group_points)
+
+avg_points = np.array([np.mean(group, axis=0) for group in points])
+max_deviations = np.array([np.max(np.abs(group - avg), axis=0) for group, avg in zip(points, avg_points)])
+
+plt.figure(figsize=(10, 8))
+
+for i, group in enumerate(points):
+    plt.scatter(group[:, 0], group[:, 1], label=f'Группа {i+1}')
+    plt.scatter(avg_points[i, 0], avg_points[i, 1], color='black', marker='x', s=100)  
+    plt.errorbar(avg_points[i, 0], avg_points[i, 1],
+                 xerr=max_deviations[i, 0], yerr=max_deviations[i, 1],
+                 fmt='o', color='black', capsize=5, label=f'Ошибки группы {i+1}' if i == 0 else "")
+
+plt.title('Группы точек с погрешностями')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.xlim(0, 10)
+plt.ylim(0, 10)
+plt.axhline(0, color='grey', lw=0.5)
+plt.axvline(0, color='grey', lw=0.5)
+plt.grid()
+plt.legend()
+plt.show()
