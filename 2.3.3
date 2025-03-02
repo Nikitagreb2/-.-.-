@@ -1,0 +1,22 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+parties = ['Единая Россия', 'КПРФ', 'Справедливая Россия', 'ЛДПР', 'Новые Люди', 'Партия Роста', 'Гражданская Платформа', 'Независимые депутаты']
+seats = [324, 57, 27, 21, 13, 1, 1, 5]
+
+colors = ['#3D85C6', '#A50000', '#FFA500', '#FFD700', '#98FB98', '#D3D3D3', '#6495ED', '#C0C0C0']
+
+fig, ax = plt.subplots(figsize=(10, 5), subplot_kw=dict(aspect="equal"))
+
+total_seats = sum(seats)
+angles = np.linspace(0, 180, num=total_seats, endpoint=False)
+
+for index, seat_count in enumerate(seats):
+    ax.scatter(angles[:seat_count], [index]*seat_count, color=colors[index], s=100, edgecolors='black')
+    angles = angles[seat_count:]
+
+ax.text(90, -0.5, '450', fontsize=20, ha='center', va='center', fontweight='bold')
+plt.title('Распределение мест в Государственной Думе', fontsize=16)
+plt.axis('off')
+
+plt.show()
