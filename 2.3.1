@@ -1,0 +1,23 @@
+import matplotlib.pyplot as plt
+
+subjects = ['Мат.анализ', 'Физика', 'ОРГ', 'Английский']
+grades = {
+    'Мат.анализ': [4, 4, 4, 3, 4, 4],
+    'Физика': [3, 4, 4, 5, 3, 4],
+    'ОРГ': [5, 5, 4, 5, 5, 5],
+    'Английский': [4, 4, 3, 4, 4, 4]
+}
+
+colors = ['blue', 'green', 'red', 'purple']  
+
+for i, subject in enumerate(subjects):
+    plt.plot(grades[subject], marker='o', label=subject, color=colors[i])  
+
+plt.xlabel('Номер оценки')
+plt.ylabel('Оценка')
+plt.title('Оценки за прошлое полугодие')
+plt.xticks(range(len(grades['Мат.анализ'])))
+plt.legend()
+plt.grid(True)
+
+plt.show()
