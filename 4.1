@@ -1,0 +1,74 @@
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QPushButton, QLabel)
+
+class TrajectoryPlotter(QWidget):
+    def __init__(self): 
+        super().__init__()
+
+        self.init_ui()
+
+    def init_ui(self):
+        self.setWindowTitle("Траектория полета тела") 
+        self.setGeometry(100, 100, 800, 600)
+
+        self.speed_input = QLineEdit(self)
+        self.speed_input.setPlaceholderText("Введите начальную скорость (м/с)") 
+
+        self.angle_input = QLineEdit(self)
+        self.angle_input.setPlaceholderText("Введите угол (градусы)") 
+
+        self.plot_button = QPushButton("Построить траекторию", self) 
+        self.plot_button.clicked.connect(self.plot_trajectory)
+
+        self.figure = plt.figure()
+        self.canvas = FigureCanvas(self.figure)
+
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel())
+        layout.addWidget(self.speed_input)
+        layout.addWidget(self.angle_input)
+        layout.addWidget(self.plot_button)
+        layout.addWidget(self.canvas)
+
+        self.setLayout(layout)
+
+    def plot_trajectory(self):
+        try:
+            v0 = float(self.speed_input.text())  
+            angle = float(self.angle_input.text()) 
+
+            theta = np.radians(angle)
+
+            g = 9.81  
+
+            t_flight = (2 * v0 * np.sin(theta)) / g
+
+            t = np.linspace(0, t_flight, num=100)
+
+            x = v0 * np.cos(theta) * t  
+            y = v0 * np.sin(theta) * t - 0.5 * g * t**2 
+
+            self.figure.clear()
+            ax = self.figure.add_subplot(111)
+            ax.plot(x, y)
+            ax.set_title("Траектория полета тела") 
+            ax.set_xlabel("Дальность (м)") 
+            ax.set_ylabel("Высота (м)") 
+            ax.grid(True) 
+
+            ax.set_xlim(0, max(x) * 1.1)
+            ax.set_ylim(0, max(y) * 1.1)
+
+            self.canvas.draw()
+
+        except ValueError:
+            print() 
+
+if __name__ == '__main__': 
+    app = QApplication(sys.argv)
+    plotter = TrajectoryPlotter()
+    plotter.show()
+    sys.exit(app.exec_())
