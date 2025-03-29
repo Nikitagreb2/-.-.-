@@ -1,0 +1,85 @@
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QPushButton, QLabel, QMessageBox)
+
+class HarmonicOscillatorPlotter(QWidget):
+    def __init__(self): 
+        super().__init__()  
+        
+        self.init_ui()
+
+    def init_ui(self):
+        self.setWindowTitle('Гармоническое колебание')
+        self.setGeometry(100, 100, 800, 600)
+
+        self.amplitude_input = QLineEdit(self)
+        self.amplitude_input.setPlaceholderText('Амплитуда (м)')
+
+        self.frequency_input = QLineEdit(self)
+        self.frequency_input.setPlaceholderText('Частота (Гц)')
+
+        self.phase_input = QLineEdit(self)
+        self.phase_input.setPlaceholderText('Фаза (градусы)')
+
+        self.plot_button = QPushButton('График', self)
+        self.plot_button.clicked.connect(self.plot_harmonic_oscillation)
+
+        self.figure = plt.figure()
+        self.canvas = FigureCanvas(self.figure)
+
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel('Введите параметры колебания:'))
+        layout.addWidget(self.amplitude_input)
+        layout.addWidget(self.frequency_input)
+        layout.addWidget(self.phase_input)
+        layout.addWidget(self.plot_button)
+        layout.addWidget(self.canvas)
+
+        self.setLayout(layout)
+
+    def plot_harmonic_oscillation(self):
+        try:
+            A = float(self.amplitude_input.text()) 
+            f = float(self.frequency_input.text()) 
+            phi = float(self.phase_input.text())  
+
+            if A < 0:
+                raise ValueError("Амплитуда должна быть неотрицательной.")
+            if f < 0:
+                raise ValueError("Частота должна быть неотрицательной.")
+
+
+            phi_rad = np.radians(phi)
+
+            t = np.linspace(0, 2 * np.pi / f, 100)  
+
+            x = A * np.sin(2 * np.pi * f * t + phi_rad)
+
+            self.figure.clear()
+            ax = self.figure.add_subplot(111)
+            ax.plot(t, x)
+            ax.set_title('Гармоническое колебание')
+            ax.set_xlabel('Время (с)')
+            ax.set_ylabel('Смещение (м)')
+            ax.grid()
+
+            ax.set_xlim(0, max(t))
+            ax.set_ylim(min(x) * 1.1, max(x) * 1.1)
+
+            self.canvas.draw()
+
+        except ValueError as e:
+            QMessageBox.critical(self, "Ошибка ввода", str(e))
+        except ZeroDivisionError:
+             QMessageBox.critical(self, "Ошибка ввода", "Частота не может быть равна нулю.")
+        except Exception as e:
+            QMessageBox.critical(self, "Ошибка", f"Произошла ошибка: {str(e)}")
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    plotter = HarmonicOscillatorPlotter()
+    plotter.show()
+    sys.exit(app.exec_())
