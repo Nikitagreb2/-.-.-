@@ -2,33 +2,33 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QPushButton, QLabel)
+from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, QPushButton, QLabel, QMessageBox)
 
 class TrajectoryPlotter(QWidget):
-    def __init__(self): 
+    def __init__(self):
         super().__init__()
-
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle("Траектория полета тела") 
+        self.setWindowTitle("Траектория полета тела")
         self.setGeometry(100, 100, 800, 600)
 
         self.speed_input = QLineEdit(self)
-        self.speed_input.setPlaceholderText("Введите начальную скорость (м/с)") 
+        self.speed_input.setPlaceholderText("Введите начальную скорость (м/с)")
 
         self.angle_input = QLineEdit(self)
-        self.angle_input.setPlaceholderText("Введите угол (градусы)") 
+        self.angle_input.setPlaceholderText("Введите угол (градусы)")
 
-        self.plot_button = QPushButton("Построить траекторию", self) 
+        self.plot_button = QPushButton("График", self)
         self.plot_button.clicked.connect(self.plot_trajectory)
 
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
 
         layout = QVBoxLayout()
-        layout.addWidget(QLabel())
+        layout.addWidget(QLabel("Начальная скорость:"))
         layout.addWidget(self.speed_input)
+        layout.addWidget(QLabel("Угол (градусы):"))
         layout.addWidget(self.angle_input)
         layout.addWidget(self.plot_button)
         layout.addWidget(self.canvas)
@@ -37,27 +37,42 @@ class TrajectoryPlotter(QWidget):
 
     def plot_trajectory(self):
         try:
-            v0 = float(self.speed_input.text())  
-            angle = float(self.angle_input.text()) 
+            v0 = float(self.speed_input.text())
+            angle = float(self.angle_input.text())
+
+            if v0 < 0:
+                self.show_error_message("Начальная скорость не может быть отрицательной.")
+                return
+            if angle < -90 or angle > 90:
+                self.show_error_message("Угол должен быть в диапазоне от -90 до 90 градусов.")
+                return
 
             theta = np.radians(angle)
-
-            g = 9.81  
+            g = 9.81
 
             t_flight = (2 * v0 * np.sin(theta)) / g
 
-            t = np.linspace(0, t_flight, num=100)
+            if v0 == 0:
+                self.show_error_message("Начальная скорость не может быть равна 0.")
+                return
 
-            x = v0 * np.cos(theta) * t  
-            y = v0 * np.sin(theta) * t - 0.5 * g * t**2 
+            if np.isclose(np.sin(theta), 0):
+                 self.show_error_message("Угол не может быть равен 0 или 180 градусов.")
+                 return
+
+            t = np.linspace(0, t_flight, num=100)
+            x = v0 * np.cos(theta) * t
+            y = v0 * np.sin(theta) * t - 0.5 * g * t**2
+
+            y[y < 0] = 0 
 
             self.figure.clear()
             ax = self.figure.add_subplot(111)
             ax.plot(x, y)
-            ax.set_title("Траектория полета тела") 
-            ax.set_xlabel("Дальность (м)") 
-            ax.set_ylabel("Высота (м)") 
-            ax.grid(True) 
+            ax.set_title("Траектория полета тела")
+            ax.set_xlabel("Дальность (м)")
+            ax.set_ylabel("Высота (м)")
+            ax.grid(True)
 
             ax.set_xlim(0, max(x) * 1.1)
             ax.set_ylim(0, max(y) * 1.1)
@@ -65,9 +80,21 @@ class TrajectoryPlotter(QWidget):
             self.canvas.draw()
 
         except ValueError:
-            print() 
+            self.show_error_message("Введите корректные числовые значения.")
+        except Exception as e:
+            self.show_error_message(f"Произошла ошибка")
 
-if __name__ == '__main__': 
+
+    def show_error_message(self, message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText("Ошибка")
+        msg.setInformativeText(message)
+        msg.setWindowTitle("Ошибка")
+        msg.exec_()
+
+
+if __name__ == '__main__':
     app = QApplication(sys.argv)
     plotter = TrajectoryPlotter()
     plotter.show()
