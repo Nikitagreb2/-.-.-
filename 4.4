@@ -1,0 +1,110 @@
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QFormLayout, QLineEdit, QPushButton, QLabel, QMessageBox
+
+
+class WaveInterferenceApp(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Интерференция двух волн")
+        self.setGeometry(100, 100, 800, 600)
+
+        self.layout = QVBoxLayout()
+        self.form_layout = QFormLayout()
+
+        self.amplitude1_input = QLineEdit(self)
+        self.frequency1_input = QLineEdit(self)
+        self.phase1_input = QLineEdit(self)
+
+        self.amplitude2_input = QLineEdit(self)
+        self.frequency2_input = QLineEdit(self)
+        self.phase2_input = QLineEdit(self)
+
+        self.plot_button = QPushButton("График", self)
+        self.plot_button.clicked.connect(self.plot_waves)
+
+        self.form_layout.addRow("Амплитуда 1 (м)", self.amplitude1_input)
+        self.form_layout.addRow("Частота 1 (Гц)", self.frequency1_input)
+        self.form_layout.addRow("Фаза 1 (°)", self.phase1_input)
+        self.form_layout.addRow("Амплитуда 2 (м)", self.amplitude2_input)
+        self.form_layout.addRow("Частота 2 (Гц)", self.frequency2_input)
+        self.form_layout.addRow("Фаза 2 (°)", self.phase2_input)
+
+        self.layout.addLayout(self.form_layout)
+        self.layout.addWidget(self.plot_button)
+
+        self.figure = plt.figure()
+        self.canvas = FigureCanvas(self.figure)
+        self.layout.addWidget(self.canvas)
+
+        self.setLayout(self.layout)
+
+    def plot_waves(self):
+        try:
+            A1 = self.validate_input(self.amplitude1_input.text(), "Амплитуда 1", float, positive=False)
+            f1 = self.validate_input(self.frequency1_input.text(), "Частота 1", float, positive=True)
+            φ1 = np.radians(self.validate_input(self.phase1_input.text(), "Фаза 1", float, positive=False))
+            A2 = self.validate_input(self.amplitude2_input.text(), "Амплитуда 2", float, positive=False)
+            f2 = self.validate_input(self.frequency2_input.text(), "Частота 2", float, positive=True)
+            φ2 = np.radians(self.validate_input(self.phase2_input.text(), "Фаза 2", float, positive=False))
+
+            t = np.linspace(0, 1, 1000)
+            wave1 = A1 * np.sin(2 * np.pi * f1 * t + φ1)
+            wave2 = A2 * np.sin(2 * np.pi * f2 * t + φ2)
+            resulting_wave = wave1 + wave2
+
+            self.figure.clear()
+
+            ax = self.figure.add_subplot(111)
+            ax.plot(t, wave1, label='Волна 1', color='blue')
+            ax.plot(t, wave2, label='Волна 2', color='orange')
+            ax.plot(t, resulting_wave, label='Результирующая', color='green')
+
+            ax.set_xlabel("Время (с)")
+            ax.set_ylabel("Смещение (м)")
+            ax.legend()
+            ax.grid()
+
+            self.canvas.draw()
+
+        except ValueError as e:
+            QMessageBox.critical(self, "Ошибка ввода", str(e))
+        except Exception as e:
+             QMessageBox.critical(self, "Непредвиденная ошибка", f"Произошла ошибка: {str(e)}")
+
+
+
+    def validate_input(self, text, field_name, data_type, positive=True):
+        """
+        Проверяет введенные пользователем значения.
+
+        Args:
+            text (str): Введенный текст.
+            field_name (str): Название поля для отображения в сообщениях об ошибках.
+            data_type (type): Тип данных, в который нужно преобразовать значение (float, int).
+            positive (bool): True, если значение должно быть положительным, False в противном случае.
+
+        Returns:
+            Преобразованное значение, если оно допустимо.
+
+        Raises:
+            ValueError: Если ввод недействителен.
+        """
+        try:
+            value = data_type(text)
+            if positive and value <= 0:
+                raise ValueError(f"{field_name} должна быть положительным числом.")
+            return value
+        except ValueError:
+            raise ValueError(f"Некорректный ввод для {field_name}.  Пожалуйста, введите число.")
+
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    main_app = WaveInterferenceApp()
+    main_app.show()
+    sys.exit(app.exec_())
