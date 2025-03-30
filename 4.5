@@ -1,0 +1,84 @@
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QFormLayout, QLineEdit, QPushButton, QLabel, QComboBox, QMessageBox
+
+
+class IdealGasApp(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Давление идеального газа от объёма")
+        self.setGeometry(100, 100, 800, 600)
+
+        self.layout = QVBoxLayout()
+        self.form_layout = QFormLayout()
+
+        self.temperature_input = QLineEdit(self)
+        self.substance_input = QLineEdit(self)
+
+        self.pressure_units = QComboBox(self)
+        self.pressure_units.addItems(["Па", "атм"])
+
+        self.plot_button = QPushButton("График", self)
+        self.plot_button.clicked.connect(self.plot_graph)
+
+        self.form_layout.addRow("Температура (К)", self.temperature_input)
+        self.form_layout.addRow("Количество вещества (моль)", self.substance_input)
+        self.form_layout.addRow("Единицы давления", self.pressure_units)
+
+        self.layout.addLayout(self.form_layout)
+        self.layout.addWidget(self.plot_button)
+
+        self.figure = plt.figure()
+        self.canvas = FigureCanvas(self.figure)
+        self.layout.addWidget(self.canvas)
+
+        self.setLayout(self.layout)
+
+    def plot_graph(self):
+        try:
+            T = float(self.temperature_input.text())
+            n = float(self.substance_input.text())
+
+            if T <= 0:
+                raise ValueError("Температура должна быть положительной.")
+            if n <= 0:
+                raise ValueError("Количество вещества должно быть положительным.")
+
+            R = 8.314
+
+            V = np.linspace(0.01, 10, 100)
+
+            P = (n * R * T) / V
+
+            if self.pressure_units.currentText() == "атм":
+                P = P / 101325
+
+            self.figure.clear()
+
+            ax = self.figure.add_subplot(111)
+            ax.plot(V, P, label='P(V)', color='blue')
+
+            ax.set_xlabel("Объём (м³)")
+            ax.set_ylabel("Давление ({})".format(self.pressure_units.currentText()))
+            ax.legend()
+            ax.grid()
+
+            self.canvas.draw()
+
+        except ValueError as e:
+            QMessageBox.critical(self, "Ошибка ввода", str(e))
+        except ZeroDivisionError:
+            QMessageBox.critical(self, "Ошибка", "Деление на ноль!")
+        except Exception as e:
+            QMessageBox.critical(self, "Ошибка", "Произошла непредвиденная ошибка: " + str(e))
+
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    main_app = IdealGasApp()
+    main_app.show()
+    sys.exit(app.exec_())
