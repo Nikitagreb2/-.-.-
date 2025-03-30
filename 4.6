@@ -1,0 +1,89 @@
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QFormLayout, QLineEdit, QPushButton, QMessageBox
+
+
+class DampedPendulumApp(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Модель затухающих колебаний маятника")
+        self.setGeometry(100, 100, 800, 600)
+
+        self.layout = QVBoxLayout()
+        self.form_layout = QFormLayout()
+
+        self.amplitude_input = QLineEdit(self)
+        self.damping_input = QLineEdit(self)
+        self.frequency_input = QLineEdit(self)
+
+        self.plot_button = QPushButton("График", self)
+        self.plot_button.clicked.connect(self.plot_graph)
+
+        self.form_layout.addRow("Амплитуда A (в градусах)", self.amplitude_input)
+        self.form_layout.addRow("Коэффициент затухания β (в 1/с)", self.damping_input)
+        self.form_layout.addRow("Частота f (в Гц)", self.frequency_input)
+
+        self.layout.addLayout(self.form_layout)
+        self.layout.addWidget(self.plot_button)
+
+        self.figure = plt.figure()
+        self.canvas = FigureCanvas(self.figure)
+        self.layout.addWidget(self.canvas)
+
+        self.setLayout(self.layout)
+
+    def plot_graph(self):
+        try:
+            A = float(self.amplitude_input.text())
+            beta = float(self.damping_input.text())
+            f = float(self.frequency_input.text())
+
+            if A <= 0:
+                self.show_error_message("Амплитуда должна быть положительной.")
+                return
+            if beta < 0:
+                self.show_error_message("Коэффициент затухания должен быть положительным.")
+                return
+            if f <= 0:
+                self.show_error_message("Частота должна быть положительной.")
+                return
+
+            t = np.linspace(0, 10, 1000)
+            omega = 2 * np.pi * f
+            theta = A * np.exp(-beta * t) * np.cos(omega * t)
+
+            self.figure.clear()
+
+            ax = self.figure.add_subplot(111)
+            ax.plot(t, theta, label='Угол отклонения', color='blue')
+
+            ax.set_xlabel("Время (с)")
+            ax.set_ylabel("Угол отклонения (градусы)")
+            ax.set_title("Затухающие колебания маятника")
+            ax.grid()
+            ax.legend()
+
+            self.canvas.draw()
+
+        except ValueError:
+            self.show_error_message("Введите корректные числовые значения.")
+        except Exception as e:
+            self.show_error_message(f"Произошла ошибка: {str(e)}")
+
+    def show_error_message(self, message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText("Ошибка")
+        msg.setInformativeText(message)
+        msg.setWindowTitle("Ошибка")
+        msg.exec_()
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    main_app = DampedPendulumApp()
+    main_app.show()
+    sys.exit(app.exec_())
