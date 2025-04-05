@@ -1,0 +1,107 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def get_positive_float(prompt):
+    while True:
+        try:
+            value = float(input(prompt))
+            if value < 0:
+                raise ValueError("Значение должно быть положительным.")
+            return value
+        except ValueError as e:
+            print(f"Ошибка: {e}. Пожалуйста, попробуйте еще раз.")
+
+def get_angle():
+    while True:
+        try:
+            angle = float(input("Введите угол θ (градусы): "))
+            return angle
+        except ValueError:
+            print("Ошибка: введено не число. Пожалуйста, попробуйте еще раз.")
+
+def get_time(max_time):
+    while True:
+        try:
+            t = float(input("Введите время t (с): "))
+            if t < 0 or t > max_time:
+                raise ValueError(f"Время должно быть в диапазоне от 0 до {max_time:.2f} секунд.")
+            return t
+        except ValueError as e:
+            print(f"Ошибка: {e}. Пожалуйста, попробуйте еще раз.")
+
+def calculate_motion():
+    print("Выберите вариант ввода:\n1 - Vx и Vy\n2 - V0 и угол θ")
+    
+    while True:
+        choice = input("Введите 1 или 2: ")
+        if choice == '1':
+            Vx = get_positive_float("Введите Vx (м/с): ")
+            Vy = get_positive_float("Введите Vy (м/с): ")
+        elif choice == '2':
+            V0 = get_positive_float("Введите V0 (м/с): ")
+            angle = get_angle()
+            Vx = V0 * np.cos(np.radians(angle))
+            Vy = V0 * np.sin(np.radians(angle))
+        else:
+            print("Неверный выбор. Пожалуйста, выберите 1 или 2.")
+            continue
+        break
+
+    g = 9.81  
+    T_flight = 2 * Vy / g
+    max_range = Vx * T_flight
+
+    t = get_time(T_flight)
+
+    x_t = Vx * t
+    y_t = Vy * t - 0.5 * g * t*2
+    if y_t < 0:
+        y_t = 0
+
+    velocity_x_t = Vx
+    velocity_y_t = Vy - g * t
+    velocity_t = np.sqrt(velocity_x_t*2 + velocity_y_t*2)
+
+    print(f"Общее время полёта (T_полёт): {T_flight:.2f} сек")
+    print(f"Скорость при касании земли: {velocity_t:.2f} м/с")
+    print(f"Координаты в момент времени t: X = {x_t:.2f} м, Y = {y_t:.2f} м")
+    print(f"Скорость в момент времени t: {velocity_t:.2f} м/с")
+
+    return Vx, Vy, T_flight
+
+def plot_graphs(Vx, Vy, T_flight):
+    t_values = np.linspace(0, T_flight, num=100)
+    x_values = Vx * t_values
+    y_values = Vy * t_values - 0.5 * 9.81 * t_values*2
+    y_values[y_values < 0] = 0
+    velocity_values = np.sqrt(Vx*2 + (Vy - 9.81 * t_values)*2)
+
+    plt.figure(figsize=(12, 6))
+
+    plt.subplot(1, 2, 1)
+    plt.plot(x_values, y_values, label='Траектория', color='blue')
+    plt.xlabel('X (м)')
+    plt.ylabel('Y (м)')
+    plt.title('График траектории (X, Y)')
+    plt.axhline(0, color='black', lw=0.5)
+    plt.axvline(0, color='black', lw=0.5)
+    plt.grid()
+    plt.legend()
+
+    plt.subplot(1, 2, 2)
+    plt.plot(t_values, velocity_values, label='Скорость', color='orange')
+    plt.xlabel('Время (с)')
+    plt.ylabel('Скорость (м/с)')
+    plt.title('График зависимости скорости от времени')
+    plt.axhline(0, color='black', lw=0.5)
+    plt.axvline(0, color='black', lw=0.5)
+    plt.grid()
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig('motion_graphs.png')
+    plt.show()
+
+if __name__ == "__main__":
+    Vx, Vy, T_flight = calculate_motion()
+    plot_graphs(Vx, Vy, T_flight)
