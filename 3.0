@@ -1,0 +1,41 @@
+def get_positive_float(prompt):
+    while True:
+        try:
+            value = float(input(prompt))
+            if value <= 0:
+                raise ValueError("Значение должно быть положительным.")
+            return value
+        except ValueError as e:
+            print(f"Ошибка: {e}. Попробуйте еще раз.")
+
+def get_time(max_time):
+    while True:
+        try:
+            t = float(input("Введите время t (с): "))
+            if t < 0 or t > max_time:
+                raise ValueError(f"Время должно быть в диапазоне от 0 до {max_time:.2f} секунд.")
+            return t
+        except ValueError as e:
+            print(f"Ошибка: {e}. Попробуйте еще раз.")
+
+def calculate_fall():
+    g = 9.81 
+    height = get_positive_float("Введите высоту H (м): ")
+
+    T_fall = (2 * height / g) * 0.5
+    print(f"Общее время падения до земли (T пад): {T_fall:.2f} сек")
+
+    impact_velocity = g * T_fall
+    print(f"Скорость в момент удара о землю: {impact_velocity:.2f} м/с")
+
+    t = get_time(T_fall)
+
+    y_t = height - 0.5 * g * t*2
+    y_t = max(0, y_t)  
+
+    velocity_t = g * t
+    print(f"Координаты в момент времени t: Y = {y_t:.2f} м")
+    print(f"Скорость в момент времени t: {velocity_t:.2f} м/с")
+
+if __name__ == "__main__":
+    calculate_fall()
