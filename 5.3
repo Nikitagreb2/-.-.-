@@ -1,0 +1,28 @@
+import telebot
+import random
+from telebot import types
+
+bot = telebot.TeleBot('7568700243:AAFux8xN_l7SIVGepLQzNOsLAlOcYdhg2H8')
+
+STICKER_IDS = [
+    'CAACAgIAAxkBAAEOScZn-imAtusZ17Hls_GdvBJyzp5HawAC4VUAArAquEqCQP9pn3KGZDYE',
+    'CAACAgIAAxkBAAEOSchn-im5KmoBRvXkgoPjmGsxp9lihgAC7ysAAoZxWUkskOaiAAEtti02BA',
+    'CAACAgIAAxkBAAEOQD1n-AwK1vm7uiXyyXavd-RwqvOhkgACBQADwDZPE_lqX5qCa011NgQ',
+]
+
+@bot.message_handler(commands=['start'])
+def start(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    sticker_button = types.KeyboardButton("Стикер")
+    markup.add(sticker_button)
+    bot.send_message(message.chat.id, "Привет! Нажми на кнопку 'Стикер', чтобы получить случайный стикер.", reply_markup=markup)
+@bot.message_handler(func=lambda message: message.text == "Стикер")
+
+def send_random_sticker(message):
+    if STICKER_IDS:
+        random_sticker = random.choice(STICKER_IDS)
+        bot.send_sticker(message.chat.id, random_sticker)
+    else:
+        bot.send_message(message.chat.id, "Список стикеров пуст.")
+
+bot.polling(none_stop=True, interval=0)
