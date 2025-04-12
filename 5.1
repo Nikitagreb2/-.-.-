@@ -1,0 +1,10 @@
+import telebot
+
+TOKEN = '7568700243:AAFux8xN_l7SIVGepLQzNOsLAlOcYdhg2H8'
+bot = telebot.TeleBot('7568700243:AAFux8xN_l7SIVGepLQzNOsLAlOcYdhg2H8')
+
+@bot.message_handler(commands=['start'])
+def start(m):
+    bot.send_message(m.chat.id, 'Привет, челевек ')
+    
+bot.polling()
