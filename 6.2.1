@@ -1,0 +1,86 @@
+import sys
+import numpy as np
+from PyQt5.QtWidgets import (QApplication, QVBoxLayout, QHBoxLayout, QWidget,
+                             QLabel, QLineEdit, QPushButton, QMessageBox)
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+
+class PlotWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.func_label = QLabel("Функция y =")
+        self.func_input = QLineEdit("np.sin(x)")
+
+        self.xmin_label = QLabel("X min:")
+        self.xmin_input = QLineEdit("-10")
+
+        self.xmax_label = QLabel("X max:")
+        self.xmax_input = QLineEdit("10")
+
+        self.plot_button = QPushButton("Построить график")
+        self.plot_button.clicked.connect(self.plot_graph)
+
+        top_layout = QHBoxLayout()
+        top_layout.addWidget(self.func_label)
+        top_layout.addWidget(self.func_input)
+        top_layout.addWidget(self.xmin_label)
+        top_layout.addWidget(self.xmin_input)
+        top_layout.addWidget(self.xmax_label)
+        top_layout.addWidget(self.xmax_input)
+        top_layout.addWidget(self.plot_button)
+
+        self.figure = Figure()
+        self.canvas = FigureCanvas(self.figure)
+
+        layout = QVBoxLayout()
+        layout.addLayout(top_layout)
+        layout.addWidget(self.canvas)
+
+        self.setLayout(layout)
+        self.setWindowTitle("Построение графика функции")
+
+    def plot_graph(self):
+        func_text = self.func_input.text()
+        try:
+            xmin = float(self.xmin_input.text())
+            xmax = float(self.xmax_input.text())
+            if xmin >= xmax:
+                raise ValueError("X min должен быть меньше X max")
+        except ValueError as e:
+            QMessageBox.warning(self, "Ошибка ввода", f"Неверный диапазон X: {e}")
+            return
+
+        x = np.linspace(xmin, xmax, 1000)
+
+        try:
+            allowed_names = {
+                'np': np,
+                'x': x,
+                'sin': np.sin,
+                'cos': np.cos,
+                'tan': np.tan,
+                'exp': np.exp,
+                'log': np.log,
+                'sqrt': np.sqrt,
+                'pi': np.pi,
+                'e': np.e,
+                'abs': np.abs
+            }
+            y = eval(func_text, {"__builtins__": None}, allowed_names)
+        except Exception as e:
+            QMessageBox.warning(self, "Ошибка вычисления", f"Ошибка в функции: {e}")
+            return
+
+        self.figure.clear()
+        ax = self.figure.add_subplot(111)
+        ax.plot(x, y)
+        ax.set_title(f"y = {func_text}")
+        ax.grid(True)
+        self.canvas.draw()
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    w = PlotWidget()
+    w.show()
+    sys.exit(app.exec_())
