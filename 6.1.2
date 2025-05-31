@@ -1,0 +1,42 @@
+mport telebot
+from threading import Timer
+
+API_TOKEN = '7568700243:AAFux8xN_l7SIVGepLQzNOsLAlOcYdhg2H8'
+bot = telebot.TeleBot('7568700243:AAFux8xN_l7SIVGepLQzNOsLAlOcYdhg2H8')
+
+user_states = {}  
+
+user_timers = {}
+
+@bot.message_handler(commands=['remind'])
+def remind_command(message):
+    user_id = message.from_user.id
+    user_states[user_id] = "waiting_for_time"
+    bot.send_message(user_id, "Через сколько минут напомнить?")
+
+@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == "waiting_for_time")
+def set_reminder(message):
+    user_id = message.from_user.id
+    text = message.text.strip()
+
+    if not text.isdigit():
+        bot.send_message(user_id, "Введите число минут.")
+        return
+
+    minutes = int(text)
+    if minutes <= 0:
+        bot.send_message(user_id, "Введите положительное число минут.")
+        return
+
+    user_states.pop(user_id, None)
+
+    bot.send_message(user_id, f"Отлично, напомню через {minutes} минут.")
+
+    def send_reminder():
+        bot.send_message(user_id, f"Напоминание! Прошло {minutes} минут.")
+
+    timer = Timer(minutes * 60, send_reminder)
+    timer.start()
+    user_timers[user_id] = timer
+
+bot.infinity_polling()
